@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --deck-ink: #0f172a;
+  --deck-paper: #f8fafc;
+  --deck-accent: #0ea5e9;
+  --deck-muted: #64748b;
+}
+
+body {
+  @apply bg-deck-paper text-deck-ink antialiased;
+}
+
+/* Slide canvas aspect ratio (16:9) */
+.slide-canvas {
+  aspect-ratio: 16 / 9;
+}
