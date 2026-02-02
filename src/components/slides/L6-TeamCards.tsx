@@ -52,7 +52,7 @@ export function L6TeamCards({ slide, theme, editable, onHeadlineChange, onTeamCh
             </div>
             <div
               className="text-sm"
-              style={{ color: "var(--deck-accent)" }}
+              style={{ color: "var(--deck-on-tint)" }}
               contentEditable={editable}
               suppressContentEditableWarning
               onBlur={(e) => {
@@ -66,7 +66,7 @@ export function L6TeamCards({ slide, theme, editable, onHeadlineChange, onTeamCh
             {t.bio && (
               <div
                 className="text-sm mt-2"
-                style={{ color: "var(--deck-secondary)" }}
+                style={{ color: "var(--deck-on-tint)" }}
                 contentEditable={editable}
                 suppressContentEditableWarning
                 onBlur={(e) => {

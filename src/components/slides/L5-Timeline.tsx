@@ -52,7 +52,7 @@ export function L5Timeline({ slide, theme, editable, onHeadlineChange, onTimelin
             </div>
             <div
               className="text-sm mt-1"
-              style={{ color: "var(--deck-secondary)" }}
+              style={{ color: "var(--deck-on-tint)" }}
               contentEditable={editable}
               suppressContentEditableWarning
               onBlur={(e) => {

@@ -14,8 +14,8 @@ interface Props {
 export function L9FullBleed({ slide, theme, editable, onHeadlineChange, onSubheadlineChange }: Props) {
   return (
     <div
-      className="slide-canvas flex flex-col justify-center items-center px-16 py-12 rounded-xl text-white"
-      style={{ backgroundColor: "var(--deck-primary)" }}
+      className="slide-canvas flex flex-col justify-center items-center px-16 py-12 rounded-xl"
+      style={{ backgroundColor: "var(--deck-primary)", color: "var(--deck-on-primary)" }}
     >
       <Quote className="h-12 w-12 mb-6 opacity-80" strokeWidth={1.5} />
       <h2

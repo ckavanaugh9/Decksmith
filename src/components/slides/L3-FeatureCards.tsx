@@ -58,7 +58,7 @@ export function L3FeatureCards({ slide, theme, editable, onHeadlineChange, onSub
           >
             <span
               className="font-medium"
-              style={{ color: "var(--deck-primary)" }}
+              style={{ color: "var(--deck-on-tint)" }}
               contentEditable={editable}
               suppressContentEditableWarning
               onBlur={(e) => {

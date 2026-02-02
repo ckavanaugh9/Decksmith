@@ -37,7 +37,7 @@ export function L7MarketBlocks({ slide, theme, editable, onHeadlineChange, onBul
           <div key={i} className="rounded-lg border p-4 flex justify-between items-center" style={{ borderColor: "color-mix(in srgb, var(--deck-accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--deck-accent) 8%, white)" }}>
             <span
               className="font-medium"
-              style={{ color: "var(--deck-primary)" }}
+              style={{ color: "var(--deck-on-tint)" }}
               contentEditable={editable}
               suppressContentEditableWarning
               onBlur={(e) => {

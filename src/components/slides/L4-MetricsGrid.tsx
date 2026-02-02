@@ -53,7 +53,7 @@ export function L4MetricsGrid({ slide, theme, editable, onHeadlineChange, onMetr
             </div>
             <div
               className="text-sm mt-1"
-              style={{ color: "var(--deck-secondary)" }}
+              style={{ color: "var(--deck-on-tint)" }}
               contentEditable={editable}
               suppressContentEditableWarning
               onBlur={(e) => {

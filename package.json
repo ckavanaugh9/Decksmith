@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
+    "dev:https": "next dev -p 3001 --experimental-https",
+    "dev:clean": "rm -rf .next && next dev -p 3001",
     "dev:turbo": "next dev --turbopack",
     "clean": "rm -rf .next",
     "build": "next build",
+    "postbuild": "node scripts/link-chunks.js",
     "start": "next start",
     "lint": "next lint"
   },
@@ -17,7 +20,7 @@
     "get-image-colors": "^4.0.1",
     "jspdf": "^2.5.2",
     "lucide-react": "^0.468.0",
-    "next": "15.0.5",
+    "next": "^15.0.6",
     "openai": "^4.73.0",
     "pptxgenjs": "^3.12.0",
     "react": "^18.3.1",
@@ -30,7 +33,7 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "eslint": "^9.15.0",
-    "eslint-config-next": "15.0.5",
+    "eslint-config-next": "^15.0.6",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.6.3"
