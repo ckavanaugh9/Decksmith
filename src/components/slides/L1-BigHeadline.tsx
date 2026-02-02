@@ -1,19 +1,29 @@
 "use client";
 
-import type { SlideData } from "@/lib/types";
+import { Sparkles } from "lucide-react";
+import type { DeckTheme, SlideData } from "@/lib/types";
 
 interface Props {
   slide: SlideData;
+  theme?: DeckTheme | null;
   editable?: boolean;
   onHeadlineChange?: (value: string) => void;
   onSubheadlineChange?: (value: string) => void;
 }
 
-export function L1BigHeadline({ slide, editable, onHeadlineChange, onSubheadlineChange }: Props) {
+export function L1BigHeadline({ slide, theme, editable, onHeadlineChange, onSubheadlineChange }: Props) {
   return (
-    <div className="slide-canvas flex flex-col justify-center px-16 py-12 bg-white rounded-xl shadow-lg border border-slate-200/80">
+    <div className="slide-canvas flex flex-col justify-center px-16 py-12 rounded-xl shadow-lg border border-slate-200/80 bg-white">
+      {theme?.logoUrl ? (
+        <img src={theme.logoUrl} alt="" className="h-12 w-auto mb-6 object-contain" />
+      ) : (
+        <div className="mb-6 flex items-center gap-2 text-[var(--deck-accent)]">
+          <Sparkles className="h-10 w-10" strokeWidth={1.5} />
+        </div>
+      )}
       <h1
-        className="text-4xl font-bold text-deck-ink tracking-tight leading-tight"
+        className="text-4xl font-bold tracking-tight leading-tight"
+        style={{ color: "var(--deck-primary)" }}
         contentEditable={editable}
         suppressContentEditableWarning
         onBlur={(e) => onHeadlineChange?.(e.currentTarget.textContent ?? "")}
@@ -22,7 +32,8 @@ export function L1BigHeadline({ slide, editable, onHeadlineChange, onSubheadline
       </h1>
       {slide.subheadline && (
         <p
-          className="mt-4 text-xl text-deck-muted max-w-2xl"
+          className="mt-4 text-xl max-w-2xl"
+          style={{ color: "var(--deck-secondary)" }}
           contentEditable={editable}
           suppressContentEditableWarning
           onBlur={(e) => onSubheadlineChange?.(e.currentTarget.textContent ?? "")}

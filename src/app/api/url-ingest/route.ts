@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "URL required" }, { status: 400 });
     }
 
-    const exaApiKey = process.env.EXA_API_KEY;
+    const exaApiKey = env.EXA_API_KEY;
     if (!exaApiKey) {
       return NextResponse.json(
         { error: "EXA_API_KEY not configured" },
@@ -94,7 +94,40 @@ export async function POST(request: NextRequest) {
 
     const websiteSummary = completion.choices[0]?.message?.content?.trim() ?? "";
 
-    return NextResponse.json({ websiteSummary, url });
+    // 4) Extract brand: favicon from first result + LLM-suggested colors from summary
+    const firstResult = contentsFromUrl.results?.[0] as { favicon?: string } | undefined;
+    const logoUrl = firstResult?.favicon ?? undefined;
+
+    const brandPrompt = `Given this company summary, suggest a professional pitch deck color scheme (hex). Return valid JSON only: { "primaryColor": "#hex", "secondaryColor": "#hex", "accentColor": "#hex" }. Use modern, distinctive colors that fit the company.\n\nSummary:\n${websiteSummary.slice(0, 500)}`;
+
+    const brandCompletion = await openai.chat.completions.create({
+      model: env.OPENAI_MODEL ?? "gpt-4o",
+      messages: [
+        { role: "system", content: "You suggest professional hex colors for pitch decks. Output only valid JSON." },
+        { role: "user", content: brandPrompt },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.5,
+    });
+
+    const brandRaw = brandCompletion.choices[0]?.message?.content ?? "{}";
+    let brand: { primaryColor: string; secondaryColor: string; accentColor: string };
+    try {
+      const parsed = JSON.parse(brandRaw) as Record<string, string>;
+      brand = {
+        primaryColor: parsed.primaryColor?.startsWith("#") ? parsed.primaryColor : "#0f172a",
+        secondaryColor: parsed.secondaryColor?.startsWith("#") ? parsed.secondaryColor : "#64748b",
+        accentColor: parsed.accentColor?.startsWith("#") ? parsed.accentColor : "#0ea5e9",
+      };
+    } catch {
+      brand = { primaryColor: "#0f172a", secondaryColor: "#64748b", accentColor: "#0ea5e9" };
+    }
+
+    return NextResponse.json({
+      websiteSummary,
+      url,
+      brand: { ...brand, logoUrl },
+    });
   } catch (e) {
     console.error("URL ingest error:", e);
     return NextResponse.json(

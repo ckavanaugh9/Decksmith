@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import type { DeckArchitectOutput, GenerateDeckInput, SlideData } from "@/lib/types";
+import type { DeckArchitectOutput, DeckTheme, GenerateDeckInput, SlideData } from "@/lib/types";
+import { parseTheme } from "@/lib/theme";
 import { env } from "@/lib/env";
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
@@ -20,10 +21,15 @@ const DECK_ARCHITECT_SYSTEM = `You are an expert pitch deck architect for ventur
       "team": [{"name": "string", "role": "string", "bio": "optional string"}],
       "matrix": [{"name": "string", "values": ["string"]}]
     }
-  ]
+  ],
+  "theme": {
+    "primaryColor": "#hex (dark text/headings)",
+    "secondaryColor": "#hex (muted text)",
+    "accentColor": "#hex (highlights, CTAs)"
+  }
 }
 
-Layout mapping: L1=big headline+subtext, L2=two-column problem, L3=3 feature cards, L4=metrics grid, L5=timeline, L6=team cards, L7=market stacked blocks, L8=competitive matrix, L9=full-bleed statement, L10=ask/fundraise. Use only these layout IDs. Keep tone investor-ready and concise. If info is missing use realistic placeholders like "Insert current MRR or growth rate".`;
+Layout mapping: L1=big headline+subtext, L2=two-column problem, L3=3 feature cards, L4=metrics grid, L5=timeline, L6=team cards, L7=market stacked blocks, L8=competitive matrix, L9=full-bleed statement, L10=ask/fundraise. Use only these layout IDs. Keep tone investor-ready and concise. If info is missing use realistic placeholders like "Insert current MRR or growth rate". For theme, suggest modern attractive hex colors that fit the startup (e.g. tech=blues, health=greens, fintech=navy/gold).`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -75,7 +81,9 @@ export async function POST(request: NextRequest) {
       matrix: s.matrix,
     }));
 
-    return NextResponse.json({ slides });
+    const theme: DeckTheme = parseTheme(parsed.theme);
+
+    return NextResponse.json({ slides, theme });
   } catch (e) {
     console.error("Deck generate error:", e);
     return NextResponse.json(

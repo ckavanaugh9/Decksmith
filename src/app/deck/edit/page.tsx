@@ -3,19 +3,25 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { SlideRenderer } from "@/components/slides/SlideRenderer";
-import type { SlideData } from "@/lib/types";
+import type { DeckTheme, SlideData } from "@/lib/types";
+import { DEFAULT_THEME } from "@/lib/theme";
+
+type DeckState = { slides: SlideData[]; title: string; theme?: DeckTheme };
 
 export default function DeckEditPage() {
-  const [deck, setDeck] = useState<{ slides: SlideData[]; title: string } | null>(null);
+  const [deck, setDeck] = useState<DeckState | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [regenerating, setRegenerating] = useState(false);
   const [exporting, setExporting] = useState<"pdf" | "pptx" | null>(null);
+  const [showThemeEditor, setShowThemeEditor] = useState(false);
 
   useEffect(() => {
     const raw = typeof window !== "undefined" ? sessionStorage.getItem("decksmith_current_deck") : null;
     if (raw) {
       try {
-        setDeck(JSON.parse(raw));
+        const parsed = JSON.parse(raw) as DeckState;
+        if (!parsed.theme) parsed.theme = DEFAULT_THEME;
+        setDeck(parsed);
       } catch {
         setDeck(null);
       }
@@ -24,7 +30,7 @@ export default function DeckEditPage() {
     }
   }, []);
 
-  const persistDeck = useCallback((next: { slides: SlideData[]; title: string }) => {
+  const persistDeck = useCallback((next: DeckState) => {
     setDeck(next);
     if (typeof window !== "undefined") {
       sessionStorage.setItem("decksmith_current_deck", JSON.stringify(next));
@@ -36,7 +42,7 @@ export default function DeckEditPage() {
       if (!deck) return;
       const slides = [...deck.slides];
       slides[index] = slide;
-      persistDeck({ ...deck, slides });
+      persistDeck({ ...deck, slides, theme: deck.theme ?? DEFAULT_THEME });
     },
     [deck, persistDeck]
   );
@@ -103,6 +109,13 @@ export default function DeckEditPage() {
   }
 
   const slide = deck.slides[currentIndex];
+  const theme = deck.theme ?? DEFAULT_THEME;
+
+  function updateTheme(patch: Partial<DeckTheme>) {
+    if (!deck) return;
+    const nextTheme = { ...theme, ...patch };
+    persistDeck({ ...deck, theme: nextTheme });
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-100">
@@ -115,6 +128,13 @@ export default function DeckEditPage() {
           <span className="text-deck-ink font-medium">{deck.title}</span>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setShowThemeEditor((v) => !v)}
+            className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-deck-ink hover:bg-slate-50"
+          >
+            {showThemeEditor ? "Hide theme" : "Edit theme"}
+          </button>
           <button
             type="button"
             onClick={() => exportDeck("pdf")}
@@ -133,6 +153,67 @@ export default function DeckEditPage() {
           </button>
         </div>
       </header>
+
+      {showThemeEditor && (
+        <div className="border-b border-slate-200 bg-white px-6 py-4 flex flex-wrap items-center gap-6">
+          <span className="text-sm font-medium text-slate-600">Theme colors</span>
+          <label className="flex items-center gap-2">
+            <span className="text-xs text-slate-500">Primary</span>
+            <input
+              type="color"
+              value={theme.primaryColor}
+              onChange={(e) => updateTheme({ primaryColor: e.target.value })}
+              className="h-8 w-12 rounded border border-slate-200 cursor-pointer"
+            />
+            <input
+              type="text"
+              value={theme.primaryColor}
+              onChange={(e) => updateTheme({ primaryColor: e.target.value })}
+              className="w-24 rounded border border-slate-200 px-2 py-1 text-xs font-mono"
+            />
+          </label>
+          <label className="flex items-center gap-2">
+            <span className="text-xs text-slate-500">Secondary</span>
+            <input
+              type="color"
+              value={theme.secondaryColor}
+              onChange={(e) => updateTheme({ secondaryColor: e.target.value })}
+              className="h-8 w-12 rounded border border-slate-200 cursor-pointer"
+            />
+            <input
+              type="text"
+              value={theme.secondaryColor}
+              onChange={(e) => updateTheme({ secondaryColor: e.target.value })}
+              className="w-24 rounded border border-slate-200 px-2 py-1 text-xs font-mono"
+            />
+          </label>
+          <label className="flex items-center gap-2">
+            <span className="text-xs text-slate-500">Accent</span>
+            <input
+              type="color"
+              value={theme.accentColor}
+              onChange={(e) => updateTheme({ accentColor: e.target.value })}
+              className="h-8 w-12 rounded border border-slate-200 cursor-pointer"
+            />
+            <input
+              type="text"
+              value={theme.accentColor}
+              onChange={(e) => updateTheme({ accentColor: e.target.value })}
+              className="w-24 rounded border border-slate-200 px-2 py-1 text-xs font-mono"
+            />
+          </label>
+          <label className="flex items-center gap-2">
+            <span className="text-xs text-slate-500">Logo URL</span>
+            <input
+              type="url"
+              value={theme.logoUrl ?? ""}
+              onChange={(e) => updateTheme({ logoUrl: e.target.value || undefined })}
+              placeholder="Optional"
+              className="w-48 rounded border border-slate-200 px-2 py-1 text-xs"
+            />
+          </label>
+        </div>
+      )}
 
       <div className="flex-1 flex overflow-hidden">
         <aside className="w-56 border-r border-slate-200 bg-white overflow-y-auto flex-shrink-0">
@@ -165,6 +246,7 @@ export default function DeckEditPage() {
           <div className="w-full max-w-4xl">
             <SlideRenderer
               slide={slide}
+              theme={theme}
               editable
               onSlideChange={(updated) => updateSlide(currentIndex, updated)}
             />

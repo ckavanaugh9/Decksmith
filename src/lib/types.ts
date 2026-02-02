@@ -47,8 +47,18 @@ export interface SlideData {
   imageUrl?: string;
 }
 
+/** Theme/brand for the deck: from website extraction or AI suggestion */
+export interface DeckTheme {
+  primaryColor: string;   // e.g. "#0f172a"
+  secondaryColor: string; // e.g. "#64748b"
+  accentColor: string;    // e.g. "#0ea5e9"
+  fontFamily?: string;   // e.g. "Inter"
+  logoUrl?: string;      // favicon or og:image from website
+}
+
 export interface DeckArchitectOutput {
   slides: SlideData[];
+  theme?: DeckTheme;
 }
 
 export interface GenerateDeckInput {

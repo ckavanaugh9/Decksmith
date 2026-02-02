@@ -3,6 +3,8 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import type { DeckTheme } from "@/lib/types";
+import { DEFAULT_THEME } from "@/lib/theme";
 
 type Mode = "prompt" | "url";
 
@@ -25,6 +27,7 @@ function CreateForm() {
     setLoading(true);
     try {
       let websiteSummary: string | undefined;
+      let ingest: { websiteSummary?: string; brand?: { primaryColor?: string; secondaryColor?: string; accentColor?: string; logoUrl?: string } } | null = null;
       if (mode === "url" && url.trim()) {
         const ingestRes = await fetch("/api/url-ingest", {
           method: "POST",
@@ -35,9 +38,11 @@ function CreateForm() {
           const data = await ingestRes.json().catch(() => ({}));
           throw new Error(data.error || "Failed to fetch website content");
         }
-        const ingest = await ingestRes.json();
-        websiteSummary = ingest.websiteSummary;
+        ingest = await ingestRes.json();
+        websiteSummary = ingest?.websiteSummary;
       }
+
+      let theme: DeckTheme = DEFAULT_THEME;
 
       const body: Record<string, unknown> = {
         description: mode === "url" ? (websiteSummary ?? description) : description,
@@ -60,9 +65,24 @@ function CreateForm() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Deck generation failed");
       }
-      const { slides } = await res.json();
-      // Store in sessionStorage and redirect to editor (no DB yet)
-      sessionStorage.setItem("decksmith_current_deck", JSON.stringify({ slides, title: "Pitch Deck" }));
+      const data = await res.json();
+      const { slides, theme: generatedTheme } = data;
+      if (mode === "url" && ingest?.brand) {
+        theme = {
+          primaryColor: ingest.brand.primaryColor ?? DEFAULT_THEME.primaryColor,
+          secondaryColor: ingest.brand.secondaryColor ?? DEFAULT_THEME.secondaryColor,
+          accentColor: ingest.brand.accentColor ?? DEFAULT_THEME.accentColor,
+          logoUrl: ingest.brand.logoUrl,
+        };
+      } else if (generatedTheme?.primaryColor) {
+        theme = {
+          primaryColor: generatedTheme.primaryColor,
+          secondaryColor: generatedTheme.secondaryColor ?? DEFAULT_THEME.secondaryColor,
+          accentColor: generatedTheme.accentColor ?? DEFAULT_THEME.accentColor,
+          logoUrl: generatedTheme.logoUrl,
+        };
+      }
+      sessionStorage.setItem("decksmith_current_deck", JSON.stringify({ slides, title: "Pitch Deck", theme }));
       router.push("/deck/edit");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

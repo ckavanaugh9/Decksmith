@@ -1,15 +1,17 @@
 "use client";
 
-import type { SlideData } from "@/lib/types";
+import { Grid3X3 } from "lucide-react";
+import type { DeckTheme, SlideData } from "@/lib/types";
 
 interface Props {
   slide: SlideData;
+  theme?: DeckTheme | null;
   editable?: boolean;
   onHeadlineChange?: (v: string) => void;
   onMatrixChange?: (matrix: { name: string; values: string[] }[]) => void;
 }
 
-export function L8CompetitiveMatrix({ slide, editable, onHeadlineChange, onMatrixChange }: Props) {
+export function L8CompetitiveMatrix({ slide, theme, editable, onHeadlineChange, onMatrixChange }: Props) {
   const matrix = slide.matrix ?? [
     { name: "Us", values: ["✓", "✓", "✓"] },
     { name: "Competitor A", values: ["—", "—", "—"] },
@@ -19,14 +21,20 @@ export function L8CompetitiveMatrix({ slide, editable, onHeadlineChange, onMatri
 
   return (
     <div className="slide-canvas flex flex-col px-12 py-10 bg-white rounded-xl shadow-lg border border-slate-200/80">
-      <h2
-        className="text-2xl font-bold text-deck-ink"
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: "color-mix(in srgb, var(--deck-accent) 20%, white)" }}>
+          <Grid3X3 className="h-5 w-5" style={{ color: "var(--deck-accent)" }} />
+        </div>
+        <h2
+          className="text-2xl font-bold"
+          style={{ color: "var(--deck-primary)" }}
         contentEditable={editable}
         suppressContentEditableWarning
         onBlur={(e) => onHeadlineChange?.(e.currentTarget.textContent ?? "")}
-      >
-        {slide.headline}
-      </h2>
+        >
+          {slide.headline}
+        </h2>
+      </div>
       <div className="mt-6 overflow-x-auto flex-1">
         <table className="w-full border-collapse text-sm">
           <thead>

@@ -1,15 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { env } from "@/lib/env";
 
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: { headers: request.headers },
   });
-  const supabase = createServerClient(
-    env.NEXT_PUBLIC_SUPABASE_URL!,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return response;
+    }
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -20,8 +24,10 @@ export async function updateSession(request: NextRequest) {
           );
         },
       },
-    }
-  );
-  await supabase.auth.getUser();
+    });
+    await supabase.auth.getUser();
+  } catch {
+    // Never block the request: if Supabase fails, continue without auth
+  }
   return response;
 }

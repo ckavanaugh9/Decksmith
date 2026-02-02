@@ -1,16 +1,18 @@
 "use client";
 
-import type { SlideData } from "@/lib/types";
+import { LayoutGrid } from "lucide-react";
+import type { DeckTheme, SlideData } from "@/lib/types";
 
 interface Props {
   slide: SlideData;
+  theme?: DeckTheme | null;
   editable?: boolean;
   onHeadlineChange?: (v: string) => void;
   onSubheadlineChange?: (v: string) => void;
   onBulletsChange?: (bullets: string[]) => void;
 }
 
-export function L3FeatureCards({ slide, editable, onHeadlineChange, onSubheadlineChange, onBulletsChange }: Props) {
+export function L3FeatureCards({ slide, theme, editable, onHeadlineChange, onSubheadlineChange, onBulletsChange }: Props) {
   const bullets = slide.bullets ?? [];
   const cards = [
     bullets[0] ?? "Feature 1",
@@ -20,32 +22,43 @@ export function L3FeatureCards({ slide, editable, onHeadlineChange, onSubheadlin
 
   return (
     <div className="slide-canvas flex flex-col px-12 py-10 bg-white rounded-xl shadow-lg border border-slate-200/80">
-      <h2
-        className="text-2xl font-bold text-deck-ink"
-        contentEditable={editable}
-        suppressContentEditableWarning
-        onBlur={(e) => onHeadlineChange?.(e.currentTarget.textContent ?? "")}
-      >
-        {slide.headline}
-      </h2>
-      {slide.subheadline && (
-        <p
-          className="mt-1 text-deck-muted"
-          contentEditable={editable}
-          suppressContentEditableWarning
-          onBlur={(e) => onSubheadlineChange?.(e.currentTarget.textContent ?? "")}
-        >
-          {slide.subheadline}
-        </p>
-      )}
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: "color-mix(in srgb, var(--deck-accent) 20%, white)" }}>
+          <LayoutGrid className="h-5 w-5" style={{ color: "var(--deck-accent)" }} />
+        </div>
+        <div>
+          <h2
+            className="text-2xl font-bold"
+            style={{ color: "var(--deck-primary)" }}
+            contentEditable={editable}
+            suppressContentEditableWarning
+            onBlur={(e) => onHeadlineChange?.(e.currentTarget.textContent ?? "")}
+          >
+            {slide.headline}
+          </h2>
+          {slide.subheadline && (
+            <p
+              className="mt-0.5"
+              style={{ color: "var(--deck-secondary)" }}
+              contentEditable={editable}
+              suppressContentEditableWarning
+              onBlur={(e) => onSubheadlineChange?.(e.currentTarget.textContent ?? "")}
+            >
+              {slide.subheadline}
+            </p>
+          )}
+        </div>
+      </div>
       <div className="mt-8 grid grid-cols-3 gap-6 flex-1">
         {cards.map((text, i) => (
           <div
             key={i}
-            className="rounded-lg border border-slate-200 bg-slate-50/50 p-5 flex flex-col justify-center"
+            className="rounded-lg border p-5 flex flex-col justify-center"
+            style={{ borderColor: "color-mix(in srgb, var(--deck-accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--deck-accent) 8%, white)" }}
           >
             <span
-              className="text-slate-700 font-medium"
+              className="font-medium"
+              style={{ color: "var(--deck-primary)" }}
               contentEditable={editable}
               suppressContentEditableWarning
               onBlur={(e) => {

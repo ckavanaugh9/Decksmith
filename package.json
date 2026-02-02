@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev -p 3001",
+    "dev:turbo": "next dev --turbopack",
+    "clean": "rm -rf .next",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -13,6 +15,7 @@
     "@supabase/supabase-js": "^2.47.10",
     "exa-js": "^1.0.0",
     "jspdf": "^2.5.2",
+    "lucide-react": "^0.468.0",
     "next": "15.0.5",
     "openai": "^4.73.0",
     "pptxgenjs": "^3.12.0",

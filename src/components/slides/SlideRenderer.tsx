@@ -1,6 +1,7 @@
 "use client";
 
-import type { SlideData } from "@/lib/types";
+import type { DeckTheme, SlideData } from "@/lib/types";
+import { SlideThemeWrapper } from "./SlideThemeWrapper";
 import { L1BigHeadline } from "./L1-BigHeadline";
 import { L2TwoColumn } from "./L2-TwoColumn";
 import { L3FeatureCards } from "./L3-FeatureCards";
@@ -14,16 +15,18 @@ import { L10Ask } from "./L10-Ask";
 
 export interface SlideRendererProps {
   slide: SlideData;
+  theme?: DeckTheme | null;
   editable?: boolean;
   onSlideChange?: (slide: SlideData) => void;
 }
 
-export function SlideRenderer({ slide, editable, onSlideChange }: SlideRendererProps) {
+export function SlideRenderer({ slide, theme, editable, onSlideChange }: SlideRendererProps) {
   const update = (patch: Partial<SlideData>) =>
     onSlideChange?.({ ...slide, ...patch });
 
   const common = {
     slide,
+    theme,
     editable,
     onHeadlineChange: (v: string) => update({ headline: v }),
     onSubheadlineChange: (v: string) => update({ subheadline: v }),
@@ -34,28 +37,41 @@ export function SlideRenderer({ slide, editable, onSlideChange }: SlideRendererP
     onMatrixChange: (matrix: { name: string; values: string[] }[]) => update({ matrix }),
   };
 
+  let content;
   switch (slide.layout) {
     case "L1":
-      return <L1BigHeadline {...common} />;
+      content = <L1BigHeadline {...common} />;
+      break;
     case "L2":
-      return <L2TwoColumn {...common} />;
+      content = <L2TwoColumn {...common} />;
+      break;
     case "L3":
-      return <L3FeatureCards {...common} />;
+      content = <L3FeatureCards {...common} />;
+      break;
     case "L4":
-      return <L4MetricsGrid {...common} />;
+      content = <L4MetricsGrid {...common} />;
+      break;
     case "L5":
-      return <L5Timeline {...common} />;
+      content = <L5Timeline {...common} />;
+      break;
     case "L6":
-      return <L6TeamCards {...common} />;
+      content = <L6TeamCards {...common} />;
+      break;
     case "L7":
-      return <L7MarketBlocks {...common} />;
+      content = <L7MarketBlocks {...common} />;
+      break;
     case "L8":
-      return <L8CompetitiveMatrix {...common} />;
+      content = <L8CompetitiveMatrix {...common} />;
+      break;
     case "L9":
-      return <L9FullBleed {...common} />;
+      content = <L9FullBleed {...common} />;
+      break;
     case "L10":
-      return <L10Ask {...common} />;
+      content = <L10Ask {...common} />;
+      break;
     default:
-      return <L1BigHeadline {...common} />;
+      content = <L1BigHeadline {...common} />;
   }
+
+  return <SlideThemeWrapper theme={theme}>{content}</SlideThemeWrapper>;
 }
