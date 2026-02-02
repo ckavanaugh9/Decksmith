@@ -1,10 +1,15 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { SlideRenderer } from "@/components/slides/SlideRenderer";
 import type { DeckTheme, SlideData } from "@/lib/types";
 import { DEFAULT_THEME } from "@/lib/theme";
+
+const SlideRenderer = dynamic(
+  () => import("@/components/slides/SlideRenderer").then((m) => ({ default: m.SlideRenderer })),
+  { ssr: false, loading: () => <div className="slide-canvas rounded-xl border border-slate-200 bg-white animate-pulse min-h-[320px]" /> }
+);
 
 type DeckState = { slides: SlideData[]; title: string; theme?: DeckTheme };
 

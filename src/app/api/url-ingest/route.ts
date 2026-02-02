@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import Exa from "exa-js";
 import OpenAI from "openai";
 import { env } from "@/lib/env";
-import { extractBrandingFromHtml, inferThemeFromBranding } from "@/lib/styling-bot";
+import {
+  extractBrandingFromHtml,
+  extractColorsFromCss,
+  extractCssFromHtml,
+  extractPaletteFromImage,
+  inferThemeFromBranding,
+} from "@/lib/styling-bot";
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
@@ -95,19 +101,29 @@ export async function POST(request: NextRequest) {
 
     const websiteSummary = completion.choices[0]?.message?.content?.trim() ?? "";
 
-    // 4) Styling bot: fetch page HTML, extract branding (theme-color, favicon, og:image), then LLM to infer full theme
+    // 4) Styling bot: fetch HTML, extract branding + CSS colors + image palette, then LLM to infer theme (dark/light + accents)
     let brandingFromHtml: ReturnType<typeof extractBrandingFromHtml> = {};
+    let cssColors: string[] = [];
+    let imagePalette: string[] = [];
     try {
       const htmlRes = await fetch(url, {
         headers: { "User-Agent": "Mozilla/5.0 (compatible; DeckSmithBot/1.0)" },
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(10000),
       });
       if (htmlRes.ok) {
         const html = await htmlRes.text();
         brandingFromHtml = extractBrandingFromHtml(html, baseUrl);
+        const css = await extractCssFromHtml(html, baseUrl);
+        if (css.trim()) cssColors = extractColorsFromCss(css);
+        const imageUrls = [brandingFromHtml.favicon, brandingFromHtml.ogImage].filter(Boolean) as string[];
+        for (const imgUrl of imageUrls.slice(0, 2)) {
+          const palette = await extractPaletteFromImage(imgUrl);
+          imagePalette.push(...palette);
+        }
+        imagePalette = [...new Set(imagePalette)];
       }
     } catch {
-      // Ignore fetch errors (CORS, timeout, etc.)
+      // Ignore fetch/parse errors
     }
 
     const firstResult = contentsFromUrl.results?.[0] as { favicon?: string } | undefined;
@@ -117,7 +133,8 @@ export async function POST(request: NextRequest) {
       openai,
       brandingFromHtml,
       websiteSummary,
-      env.OPENAI_MODEL ?? "gpt-4o"
+      env.OPENAI_MODEL ?? "gpt-4o",
+      { cssColors, imagePalette }
     );
     const brand = {
       primaryColor: theme.primaryColor,

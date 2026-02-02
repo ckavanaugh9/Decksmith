@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { env } from "@/lib/env";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -14,8 +13,8 @@ export default function SignInPage() {
     setMessage("");
     setLoading(true);
     try {
-      // Supabase Auth: signInWithOtp({ email }) when Supabase is configured
-      if (!env.NEXT_PUBLIC_SUPABASE_URL) {
+      const supabaseUrl = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_SUPABASE_URL : undefined;
+      if (!supabaseUrl) {
         setMessage("Sign-in is not configured yet. Use Create deck without an account for now.");
         return;
       }
