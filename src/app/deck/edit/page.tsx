@@ -21,6 +21,9 @@ export default function DeckEditPage() {
       try {
         const parsed = JSON.parse(raw) as DeckState;
         if (!parsed.theme) parsed.theme = DEFAULT_THEME;
+        const first = parsed.slides?.[0];
+        console.info("[DeckSmith] Edit page loaded deck:", parsed.slides?.length ?? 0, "slides | first headline:", first?.headline ?? "(none)", "| first layout:", first?.layout ?? "(none)");
+        if (first && !first.headline) console.warn("[DeckSmith] Edit: first slide has no headline — GPT text may not have been saved");
         setDeck(parsed);
       } catch {
         setDeck(null);

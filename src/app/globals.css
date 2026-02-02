@@ -9,8 +9,11 @@
   --deck-muted: #64748b;
 }
 
+/* Inline fallbacks in layout.tsx guarantee visibility if CSS loads late or fails */
 body {
   @apply bg-deck-paper text-deck-ink antialiased;
+  background-color: #f8fafc;
+  color: #0f172a;
 }
 
 /* Slide canvas aspect ratio (16:9) */

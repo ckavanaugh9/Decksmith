@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import type { DeckTheme } from "@/lib/types";
+import type { DeckTheme, SlideCopyItem } from "@/lib/types";
 import { DEFAULT_THEME } from "@/lib/theme";
 
 type Mode = "prompt" | "url";
@@ -27,12 +27,19 @@ function CreateForm() {
     setLoading(true);
     try {
       let websiteSummary: string | undefined;
-      let ingest: { websiteSummary?: string; brand?: { primaryColor?: string; secondaryColor?: string; accentColor?: string; logoUrl?: string } } | null = null;
-      if (mode === "url" && url.trim()) {
+      let companyStory: string | undefined;
+      let slideCopy: SlideCopyItem[] | undefined;
+      let ingest: { websiteSummary?: string; companyStory?: string; slideCopy?: SlideCopyItem[]; brand?: { primaryColor?: string; secondaryColor?: string; accentColor?: string; logoUrl?: string } } | null = null;
+      // Run URL flow if: URL mode with URL field filled, OR prompt mode but user pasted a URL in description
+      const looksLikeUrl = (s: string) => /^https?:\/\/\S+/.test((s ?? "").trim());
+      const effectiveUrl = mode === "url" && url.trim() ? url.trim() : looksLikeUrl(description) ? description.trim() : "";
+      if (effectiveUrl) {
+        const debugIngest = searchParams.get("debug") === "1";
         const ingestRes = await fetch("/api/url-ingest", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: url.trim() }),
+          body: JSON.stringify({ url: effectiveUrl, debug: debugIngest }),
+          cache: "no-store",
         });
         if (!ingestRes.ok) {
           const data = await ingestRes.json().catch(() => ({}));
@@ -40,6 +47,29 @@ function CreateForm() {
         }
         ingest = await ingestRes.json();
         websiteSummary = ingest?.websiteSummary;
+        companyStory = ingest?.companyStory;
+        slideCopy = ingest?.slideCopy;
+        const ingestSource = (ingest as { _slideCopySource?: string })?._slideCopySource;
+        console.info("[DeckSmith] URL ingest:", ingestSource === "gpt" ? "GPT slide copy parsed ✓" : "Parse failed — will use architect path", ingestSource ?? "(no _slideCopySource)");
+
+        // Troubleshoot GPT: log raw response and research context when ?debug=1
+        const debug = ingest as { _debugGptRaw?: string; _debugCombinedLength?: number; _debugCombinedPreview?: string; _debugParsedSlides?: unknown[] };
+        if (debugIngest && (debug._debugGptRaw != null || debug._debugCombinedPreview != null)) {
+          console.group("[DeckSmith] GPT troubleshoot (add ?debug=1 to URL)");
+          if (debug._debugCombinedLength != null) console.info("Research context length (chars):", debug._debugCombinedLength);
+          if (debug._debugCombinedPreview) {
+            console.info("Research context (first 5000 chars) — what GPT saw:");
+            console.log(debug._debugCombinedPreview);
+          }
+          if (debug._debugGptRaw) {
+            console.info("GPT raw response (exactly what the model returned):");
+            console.log(debug._debugGptRaw);
+          }
+          if (debug._debugParsedSlides?.length) {
+            console.info("First 3 slides after parsing (what we send to deck):", debug._debugParsedSlides);
+          }
+          console.groupEnd();
+        }
       }
 
       let theme: DeckTheme = DEFAULT_THEME;
@@ -58,29 +88,52 @@ function CreateForm() {
       }
 
       const body: Record<string, unknown> = {
-        description: mode === "url" ? (websiteSummary ?? description) : description,
+        description: effectiveUrl ? (websiteSummary ?? description) : description,
         slideCount: 11,
       };
       if (industry) body.industry = industry;
       if (stage) body.stage = stage;
       if (targetCustomer) body.targetCustomer = targetCustomer;
-      if (mode === "url" && url.trim()) {
-        body.websiteUrl = url.trim();
+      if (effectiveUrl) {
+        body.websiteUrl = effectiveUrl;
         body.websiteSummary = websiteSummary;
+        if (companyStory) body.companyStory = companyStory;
+        if (slideCopy && slideCopy.length > 0) {
+          body.slideCopy = slideCopy; // GPT text + layout from url-ingest; deck/generate uses this verbatim
+          if (typeof window !== "undefined") {
+            const first = slideCopy[0];
+            console.info("Create: sending GPT slideCopy to deck/generate", slideCopy.length, "slides | first headline:", first?.headline ?? "(none)", "| first layout:", first?.layout ?? "(none)");
+          }
+          if (ingest?.brand) {
+            body.theme = {
+              primaryColor: ingest.brand.primaryColor ?? DEFAULT_THEME.primaryColor,
+              secondaryColor: ingest.brand.secondaryColor ?? DEFAULT_THEME.secondaryColor,
+              accentColor: ingest.brand.accentColor ?? DEFAULT_THEME.accentColor,
+              logoUrl: ingest.brand.logoUrl,
+            };
+          }
+        }
       }
 
       const res = await fetch("/api/deck/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
+        cache: "no-store",
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Deck generation failed");
       }
       const data = await res.json();
-      const { slides, theme: generatedTheme } = data;
-      if (mode === "url" && ingest?.brand) {
+      const { slides, theme: generatedTheme, _source: deckSource } = data as { slides: unknown[]; theme?: DeckTheme; _source?: string };
+      const slidesToSave = Array.isArray(slides) && slides.length > 0 ? slides : [];
+      const firstSaved = slidesToSave[0] as { headline?: string; layout?: string; bullets?: string[] } | undefined;
+      console.info("[DeckSmith] Deck generate:", deckSource === "slideCopy" ? "Used GPT slide copy ✓" : "Used architect (LLM) path", deckSource ?? "(no _source)", "| saving", slidesToSave.length, "slides | first headline:", firstSaved?.headline ?? "(none)", "| first layout:", firstSaved?.layout ?? "(none)");
+      if (deckSource === "slideCopy" && !firstSaved?.headline) {
+        console.warn("[DeckSmith] GPT path but first slide has no headline — check API response");
+      }
+      if (effectiveUrl && ingest?.brand) {
         theme = {
           primaryColor: ingest.brand.primaryColor ?? DEFAULT_THEME.primaryColor,
           secondaryColor: ingest.brand.secondaryColor ?? DEFAULT_THEME.secondaryColor,
@@ -97,7 +150,7 @@ function CreateForm() {
           logoUrl: generatedTheme.logoUrl,
         };
       }
-      sessionStorage.setItem("decksmith_current_deck", JSON.stringify({ slides, title: "Pitch Deck", theme }));
+      sessionStorage.setItem("decksmith_current_deck", JSON.stringify({ slides: slidesToSave, title: "Pitch Deck", theme }));
       router.push("/deck/edit");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

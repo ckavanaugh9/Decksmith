@@ -12,6 +12,14 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const bodyStyle: React.CSSProperties = {
+  fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  margin: 0,
+  minHeight: "100vh",
+  backgroundColor: "#f8fafc",
+  color: "#0f172a",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -19,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen font-sans antialiased" style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }} suppressHydrationWarning>
+      <body className="min-h-screen font-sans antialiased" style={bodyStyle} suppressHydrationWarning>
         {children}
         <noscript>
           <div style={{ padding: "2rem", textAlign: "center", fontFamily: "system-ui, sans-serif", background: "#f8fafc", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>

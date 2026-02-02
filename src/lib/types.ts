@@ -43,8 +43,10 @@ export interface SlideData {
   team?: { name: string; role: string; bio?: string }[];
   /** For L8: rows for competitive matrix */
   matrix?: { name: string; values: string[] }[];
-  /** Optional image URL (future) */
+  /** Optional image URL (from website or resolved later) */
   imageUrl?: string;
+  /** GPT-suggested image: short description for this slide (e.g. "Product dashboard", "Team photo") */
+  imageSuggestion?: string;
 }
 
 /** Theme/brand for the deck: from website extraction or AI suggestion */
@@ -61,6 +63,22 @@ export interface DeckArchitectOutput {
   theme?: DeckTheme;
 }
 
+/** Investor-grade slide copy from URL ingest (GPT); used to build deck with exact text + layout + style from site */
+export interface SlideCopyItem {
+  type: SlideType;
+  /** GPT-suggested layout (L1–L10); deck uses this — no fixed mapping */
+  layout?: LayoutId;
+  headline: string;
+  subheadline?: string;
+  bullets?: string[];
+  metrics?: { label: string; value: string }[];
+  timeline?: { label: string; description: string }[];
+  team?: { name: string; role: string; bio?: string }[];
+  matrix?: { name: string; values: string[] }[];
+  /** GPT-suggested image for this slide (e.g. "Product dashboard", "Team photo") */
+  imageSuggestion?: string;
+}
+
 export interface GenerateDeckInput {
   /** Natural language startup description */
   description: string;
@@ -69,6 +87,14 @@ export interface GenerateDeckInput {
   targetCustomer?: string;
   /** If provided, URL content will be fetched and merged into context */
   websiteUrl?: string;
+  /** Short summary from URL ingest (backward compat) */
+  websiteSummary?: string;
+  /** Detailed 8-section company story from URL ingest (mission, product, tech, differentiation, IP, financials, TAM, fundraising) */
+  companyStory?: string;
+  /** Pre-generated slide copy from URL ingest (investor-grade text); deck uses this + theme from brand */
+  slideCopy?: SlideCopyItem[];
+  /** Theme from URL ingest (brand); used when slideCopy is provided */
+  theme?: DeckTheme;
   slideCount?: number;
 }
 
