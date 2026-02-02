@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Exa from "exa-js";
 import OpenAI from "openai";
 import { env } from "@/lib/env";
+import { extractBrandingFromHtml, inferThemeFromBranding } from "@/lib/styling-bot";
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
@@ -94,39 +95,41 @@ export async function POST(request: NextRequest) {
 
     const websiteSummary = completion.choices[0]?.message?.content?.trim() ?? "";
 
-    // 4) Extract brand: favicon from first result + LLM-suggested colors from summary
-    const firstResult = contentsFromUrl.results?.[0] as { favicon?: string } | undefined;
-    const logoUrl = firstResult?.favicon ?? undefined;
-
-    const brandPrompt = `Given this company summary, suggest a professional pitch deck color scheme (hex). Return valid JSON only: { "primaryColor": "#hex", "secondaryColor": "#hex", "accentColor": "#hex" }. Use modern, distinctive colors that fit the company.\n\nSummary:\n${websiteSummary.slice(0, 500)}`;
-
-    const brandCompletion = await openai.chat.completions.create({
-      model: env.OPENAI_MODEL ?? "gpt-4o",
-      messages: [
-        { role: "system", content: "You suggest professional hex colors for pitch decks. Output only valid JSON." },
-        { role: "user", content: brandPrompt },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.5,
-    });
-
-    const brandRaw = brandCompletion.choices[0]?.message?.content ?? "{}";
-    let brand: { primaryColor: string; secondaryColor: string; accentColor: string };
+    // 4) Styling bot: fetch page HTML, extract branding (theme-color, favicon, og:image), then LLM to infer full theme
+    let brandingFromHtml: ReturnType<typeof extractBrandingFromHtml> = {};
     try {
-      const parsed = JSON.parse(brandRaw) as Record<string, string>;
-      brand = {
-        primaryColor: parsed.primaryColor?.startsWith("#") ? parsed.primaryColor : "#0f172a",
-        secondaryColor: parsed.secondaryColor?.startsWith("#") ? parsed.secondaryColor : "#64748b",
-        accentColor: parsed.accentColor?.startsWith("#") ? parsed.accentColor : "#0ea5e9",
-      };
+      const htmlRes = await fetch(url, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; DeckSmithBot/1.0)" },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (htmlRes.ok) {
+        const html = await htmlRes.text();
+        brandingFromHtml = extractBrandingFromHtml(html, baseUrl);
+      }
     } catch {
-      brand = { primaryColor: "#0f172a", secondaryColor: "#64748b", accentColor: "#0ea5e9" };
+      // Ignore fetch errors (CORS, timeout, etc.)
     }
+
+    const firstResult = contentsFromUrl.results?.[0] as { favicon?: string } | undefined;
+    const logoUrl = brandingFromHtml.favicon ?? brandingFromHtml.ogImage ?? firstResult?.favicon;
+
+    const theme = await inferThemeFromBranding(
+      openai,
+      brandingFromHtml,
+      websiteSummary,
+      env.OPENAI_MODEL ?? "gpt-4o"
+    );
+    const brand = {
+      primaryColor: theme.primaryColor,
+      secondaryColor: theme.secondaryColor,
+      accentColor: theme.accentColor,
+      logoUrl: logoUrl ?? theme.logoUrl,
+    };
 
     return NextResponse.json({
       websiteSummary,
       url,
-      brand: { ...brand, logoUrl },
+      brand,
     });
   } catch (e) {
     console.error("URL ingest error:", e);

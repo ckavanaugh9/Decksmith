@@ -44,6 +44,19 @@ function CreateForm() {
 
       let theme: DeckTheme = DEFAULT_THEME;
 
+      // When no URL: get theme from Slidebook examples (Exa + LLM)
+      if (mode === "prompt") {
+        try {
+          const styleRes = await fetch("/api/styling/from-slidebook", { method: "POST" });
+          if (styleRes.ok) {
+            const { theme: slidebookTheme } = await styleRes.json();
+            if (slidebookTheme?.primaryColor) theme = slidebookTheme;
+          }
+        } catch {
+          // Keep DEFAULT_THEME
+        }
+      }
+
       const body: Record<string, unknown> = {
         description: mode === "url" ? (websiteSummary ?? description) : description,
         slideCount: 11,
@@ -74,6 +87,8 @@ function CreateForm() {
           accentColor: ingest.brand.accentColor ?? DEFAULT_THEME.accentColor,
           logoUrl: ingest.brand.logoUrl,
         };
+      } else if (mode === "prompt") {
+        // Theme already set from Slidebook (or DEFAULT_THEME if that failed)
       } else if (generatedTheme?.primaryColor) {
         theme = {
           primaryColor: generatedTheme.primaryColor,
