@@ -229,7 +229,88 @@ AVOID (do not write like this):
 
 NAMES AND NUMBERS: When the research mentions any of the following, you MUST use them in the bullets: grant or funding ($, NSF, SBIR, etc.), partners or customers (DOTs, agencies, universities, company names), people (founders, researchers, e.g. "Dr. X"), awards (Edison, TIME, ASCE Gamechanger, etc.), stats (e.g. "25% overuse of cement", "11 states", "X% reduction"). Do not drop concrete details in favor of generic phrasing.
 
-FORMAT (match this STYLE — short one-line bullets — but write content ONLY from the research; do not copy the example text):
+REFERENCE EXAMPLE — Match this STYLE (punchy headlines, visual layouts, specific details). Use the research below to write YOUR version — do NOT copy this example text:
+
+Slide 1 — Vision / Hero Slide
+Headline: "Concrete Just Got Smart"
+Subheadline: "Real-time strength intelligence for faster, safer construction"
+Layout: L9 (full-bleed statement)
+Image suggestion: "Major infrastructure pour (bridge, highway, or high-rise foundation)"
+
+Slide 2 — The Problem
+Headline: "Concrete Decisions Run on Guesswork"
+Layout: L2 (two-column bullets)
+Bullets: ["🧪 Slow Testing — Break tests take days", "💸 Cost Overruns — Delays = labor + equipment burn", "🌍 Material Waste — Overdesign drives excess cement use"]
+Image suggestion: "Simple line icons + muted gray background texture"
+
+Slide 3 — The Solution
+Headline: "Real-Time Strength. Zero Breaks."
+Layout: L2 (left text, right visual)
+Bullets: ["In-place, real-time strength measurement", "No cylinders, no lab delays", "Live alerts for construction milestones"]
+Image suggestion: "Exploded or in-context diagram of sensor embedded in concrete sending data to cloud/dashboard"
+
+Slide 4 — Technology
+Headline: "Physics + AI = Breakthrough Measurement"
+Layout: L5 (timeline/flow)
+Timeline: [
+  {"label": "Concrete → Sensor", "description": "Acoustic/Resonance Signal"},
+  {"label": "Sensor → Cloud", "description": "AI Strength Modeling"},
+  {"label": "Cloud → Dashboard", "description": "Wireless Data Pipeline"},
+  {"label": "Dashboard → Site", "description": "Actionable Site Insights"}
+]
+Image suggestion: "Clean schematic, thin lines, glowing signal waves inside concrete block graphic"
+
+Slide 5 — Why We Win
+Headline: "Not an Estimate. The Actual Strength."
+Layout: L8 (comparison table)
+Matrix: [
+  {"name": "Wavelogix", "values": ["✓", "✓", "✓", "✓"]},
+  {"name": "Cylinder Breaks", "values": ["❌", "❌", "⚠️", "❌"]},
+  {"name": "Temp/Maturity Sensors", "values": ["❌", "✓", "❌", "⚠️"]}
+]
+Image suggestion: "Comparison table with green checks vs gray Xs, lots of white space"
+
+Slide 6 — Defensibility
+Headline: "Deep Tech. Protected."
+Layout: L2 (two-column)
+Bullets: ["Patented resonance-based sensing", "Proprietary signal processing", "Data + model moat grows with every pour"]
+Image suggestion: "Stylized patent shield icon overlaying waveform signal inside concrete"
+
+Slide 7 — Traction
+Headline: "Adopted Where Failure Isn't an Option"
+Layout: L4 (metrics grid)
+Metrics: [
+  {"label": "National infrastructure pilots", "value": "11 states"},
+  {"label": "Federal research funding", "value": "$1M NSF"},
+  {"label": "Industry awards", "value": "Edison Gold, TIME Best Inventions"}
+]
+Image suggestion: "Logo bar with DOTs, contractors, research partners; background of highway paving"
+
+Slide 8 — Market Opportunity
+Headline: "Digitizing a Trillion-Dollar Industry"
+Layout: L7 (market stacked blocks)
+Bullets: ["TAM: Global concrete construction", "SAM: Infrastructure + commercial builds", "SOM: Sensor-enabled smart construction"]
+Image suggestion: "Expanding circles (TAM → SAM → SOM) visualization"
+
+Slide 9 — Business Model
+Headline: "Hardware + Recurring Data Revenue"
+Layout: L4 (metrics/revenue stack)
+Metrics: [
+  {"label": "Sensor Hardware Sales", "value": "Base"},
+  {"label": "Project-Based Monitoring", "value": "Mid"},
+  {"label": "Recurring SaaS Dashboard", "value": "High"},
+  {"label": "Predictive Analytics", "value": "Highest"}
+]
+Image suggestion: "Stacked blocks growing upward, top blocks higher margin"
+
+Slide 10 — The Ask
+Headline: "Scaling the Standard for Concrete Intelligence"
+Layout: L10 (ask/fundraise)
+Subheadline: "Raising growth capital"
+Bullets: ["Manufacturing scale", "Sales expansion", "R&D / AI platform", "Cloud infrastructure", "Customer success"]
+Image suggestion: "Use of funds pie chart; subtle blueprint grid texture"
+
+FORMAT (match the STYLE above — punchy headlines, visual layouts, specific details — but write content ONLY from the research; do not copy the example text):
 
 Slide 1 — Mission & Vision: Headline "Mission & Vision". 3 bullets: one tagline or vision from the research first, then 2 benefit bullets derived from the research (use the company's own words or claims where possible).
 
@@ -292,7 +373,7 @@ Output valid JSON only — no markdown code fences, no text before or after the 
   ]
 }
 
-Generate exactly 10 slides in order: title (Mission & Vision), problem, solution (What We Do), product (Technology & Product), competition (Differentiation), IP (headline "IP & Defensibility"), traction, market, business_model (Financial Forecast with metrics), ask (Fundraise & Use of Funds). For each slide YOU choose the layout (L1–L10) that best fits the content and provide the matching content (bullets, metrics, matrix, team, or timeline). Optionally add "imageSuggestion" per slide. Colors/theme will be taken from the website separately — you control text, layout, and image suggestions only.`;
+Generate exactly 10 slides in order: title (Mission & Vision), problem, solution (What We Do), product (Technology & Product), competition (Differentiation), IP (headline "IP & Defensibility"), traction, market, business_model (Financial Forecast with metrics), ask (Fundraise & Use of Funds). For each slide YOU choose the layout (L1–L10) that best fits the content and provide the matching content (bullets, metrics, matrix, team, or timeline). Match the REFERENCE EXAMPLE style: punchy headlines, visual layouts, specific details. Optionally add "imageSuggestion" per slide describing the visual (e.g. "Product dashboard", "Award ceremony", "Comparison chart"). Colors/theme will be taken from the website separately — you control text, layout, and image suggestions only.`;
 
     const slideCopyCompletion = await openai.chat.completions.create({
       model: env.OPENAI_MODEL ?? "gpt-4o",
@@ -300,7 +381,7 @@ Generate exactly 10 slides in order: title (Mission & Vision), problem, solution
         {
           role: "system",
           content:
-            "You are a VC pitch deck writer. You dictate slide text, layout, and image suggestions. Output only valid JSON with a 'slides' array. For each slide you choose: type, layout (L1–L10 — pick the layout that best fits the content; no fixed mapping), headline, subheadline, and the content that matches the layout (bullets for L2/L3, metrics for L4/L7, matrix for L8, team for L6, timeline for L5). If you choose L8 you must provide 'matrix'. Optionally add 'imageSuggestion' (one short phrase per slide, e.g. 'Product dashboard'). Rules: (1) Rewrite every bullet using ONLY the research provided. (2) Include grants, partners, people, awards by name when in research. (3) No invented fundraising split when research says nothing. (4) One short punchy line per bullet. Colors/theme come from the website — you control text, layout, and image suggestions.",
+            "You are a VC pitch deck writer. You dictate slide text, layout, and image suggestions. Match the REFERENCE EXAMPLE style: punchy, memorable headlines (e.g. 'Concrete Just Got Smart', 'Not an Estimate. The Actual Strength.'), visual layouts that fit the content, and specific details from the research. Output only valid JSON with a 'slides' array. For each slide you choose: type, layout (L1–L10 — pick the layout that best fits the content; no fixed mapping), headline (make it punchy and memorable, not generic), subheadline, and the content that matches the layout (bullets for L2/L3, metrics for L4/L7, matrix for L8, team for L6, timeline for L5). If you choose L8 you must provide 'matrix'. Optionally add 'imageSuggestion' (one short phrase per slide describing the visual, e.g. 'Product dashboard screenshot', 'Award ceremony photo'). Rules: (1) Rewrite every bullet using ONLY the research provided — do NOT copy the example text. (2) Include grants, partners, people, awards by name when in research. (3) No invented fundraising split when research says nothing. (4) Headlines should be punchy and memorable (like the example), not safe and generic. Colors/theme come from the website — you control text, layout, and image suggestions.",
         },
         { role: "user", content: slideCopyPrompt },
       ],
